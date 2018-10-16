@@ -21,21 +21,22 @@ Java_org_openni_android_tools_niviewer_NiViewerActivity_stringFromJNI(
 extern "C"
 JNIEXPORT jintArray JNICALL
 Java_org_openni_android_tools_niviewer_StreamView_bitmap2Gray(JNIEnv *env, jobject instance,
-                                                              jintArray pixels_, jint w, jint h) {
+                                                              jbyteArray pixels_, jint w, jint h) {
     //数据转换
-    jint *pixels = env->GetIntArrayElements(pixels_, NULL);
+    jbyte *pixels = env->GetByteArrayElements(pixels_, NULL);
 
     // TODO
     //图像处理
-    Mat imgData(h,w,CV_8UC4,(unsigned char*)pixels);
-    cvtColor(imgData,imgData,CV_BGRA2GRAY);
-    applyColorMap(imgData,imgData,COLORMAP_HSV);
+    Mat imgData(h,w,CV_8UC1,(unsigned char*)pixels);
+    //cvtColor(imgData,imgData,CV_BGRA2GRAY);              //转灰度图
+    cvtColor(imgData,imgData,CV_GRAY2BGRA);              //需要显示，再转回彩色图
+    //applyColorMap(imgData,imgData,COLORMAP_HSV);
 
     //返回转换
     int size = w*h;
     jintArray rst = env->NewIntArray(size);
     env->SetIntArrayRegion(rst,0,size,(jint*)imgData.data);
-    env->ReleaseIntArrayElements(pixels_, pixels, 0);
+    env->ReleaseByteArrayElements(pixels_, pixels, 0);
 
     return rst;
 }

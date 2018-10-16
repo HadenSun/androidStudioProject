@@ -37,7 +37,9 @@ import org.openni.android.OpenNIView;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.Image;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -45,6 +47,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -310,16 +313,16 @@ public class StreamView extends RelativeLayout {
 						frame = mStream.readFrame();
 						////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 						frame_index=frame.getFrameIndex();
-						if(mStream.getVideoMode().equals(mStreamVideoModes.get(0)))
-						{
-							ByteBuffer byteBuffer = frame.getData();
-							byte[] by = new byte[640*480];
-							byteBuffer.get(by,0,640*480);
-							//byte[] by = byteBuffer.array();
-							//IntBuffer intBuffer = byteBuffer.asIntBuffer();
-							//int data[] = intBuffer.array();
-							//bitmap2Gray(by,640,480);
-						}
+						if(mStream.getVideoMode().equals(mStreamVideoModes.get(0))) {
+                            ByteBuffer byteBuffer = frame.getData();
+                            byte[] by = new byte[640 * 480];
+                            byteBuffer.get(by, 0, 640 * 480);
+                            int rstData[] = bitmap2Gray(by, 640, 480);
+                            Bitmap resultImage = Bitmap.createBitmap(640, 480, Bitmap.Config.ARGB_8888);
+                            resultImage.setPixels(rstData, 0, 640, 0, 0, 640, 480);
+
+                            //mFrameView.setVisibility(INVISIBLE);
+                        }
 						////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 						// Request rendering of the current OpenNI frame
 						mFrameView.update(frame);
@@ -374,6 +377,6 @@ public class StreamView extends RelativeLayout {
 		});
 	}
 
-	public native int[] bitmap2Gray(int[] pixels, int w,int h);
+	public native int[] bitmap2Gray(byte[] pixels, int w,int h);
 
 }
