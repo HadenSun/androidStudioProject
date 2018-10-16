@@ -10,14 +10,15 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags "-std=c++11 -frtti -fexceptions"
-                //abiFilters 'armeabi-v7a'
+                abiFilters 'armeabi-v7a'
             }
         }
     }
     sourceSets{
         main{
-            jniLibs.srcDirs = ['src/main/jniLibs/libs']
+
             jniLibs.srcDirs = ['src/main/jniLibs']
+            //jniLibs.srcDirs = ['src/main/jniLibs/libs']
         }
     }
     splits {

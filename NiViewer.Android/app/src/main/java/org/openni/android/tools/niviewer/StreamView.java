@@ -20,6 +20,8 @@
  *****************************************************************************/
 package org.openni.android.tools.niviewer;
 
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
@@ -34,6 +36,7 @@ import org.openni.android.OpenNIView;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -48,6 +51,10 @@ import android.widget.TextView;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 public class StreamView extends RelativeLayout {
+
+	static {
+		System.loadLibrary("native-lib");
+	}
 
 	private static final String TAG = "StreamView";
 	private Thread mMainLoopThread;
@@ -303,7 +310,16 @@ public class StreamView extends RelativeLayout {
 						frame = mStream.readFrame();
 						////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 						frame_index=frame.getFrameIndex();
-
+						if(mStream.getVideoMode().equals(mStreamVideoModes.get(0)))
+						{
+							ByteBuffer byteBuffer = frame.getData();
+							byte[] by = new byte[640*480];
+							byteBuffer.get(by,0,640*480);
+							//byte[] by = byteBuffer.array();
+							//IntBuffer intBuffer = byteBuffer.asIntBuffer();
+							//int data[] = intBuffer.array();
+							//bitmap2Gray(by,640,480);
+						}
 						////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 						// Request rendering of the current OpenNI frame
 						mFrameView.update(frame);
@@ -357,4 +373,7 @@ public class StreamView extends RelativeLayout {
 			}
 		});
 	}
+
+	public native int[] bitmap2Gray(int[] pixels, int w,int h);
+
 }
