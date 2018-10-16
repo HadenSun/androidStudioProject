@@ -62,6 +62,9 @@ public class NiViewerActivity
     private LinearLayout mStreamsContainer;
     private int mActiveDeviceID = -1;
 
+    static {
+        System.loadLibrary("native-lib");
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

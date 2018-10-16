@@ -1,13 +1,6 @@
 apply plugin: 'com.android.application'
 android {
-    signingConfigs {
-        keystore {
-            keyAlias 'axon'
-            keyPassword 'android'
-            storeFile file('F:/workspace/as/NiViewer.Android/app/keystore.jks')
-            storePassword 'android'
-        }
-    }
+
     compileSdkVersion 28
     buildToolsVersion "28.0.1"
     defaultConfig {
@@ -17,7 +10,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags "-std=c++11 -frtti -fexceptions"
-                abiFilters 'armeabi-v7a'
+                //abiFilters 'armeabi-v7a'
             }
         }
     }
@@ -39,8 +32,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            signingConfig signingConfigs.keystore
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 

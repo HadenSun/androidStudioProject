@@ -5,13 +5,6 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
-# 设置include文件夹的地址
-include_directories(${CMAKE_SOURCE_DIR}/src/main/cpp/include)
-
-# 设置opencv的动态库
-add_library(libopencv_java SHARED IMPORTED)
-set_target_properties(libopencv_java PROPERTIES IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/main/jniLibs/libs/${ANDROID_ABI}/libopencv_java.so)
-
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -45,7 +38,7 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       native-lib libopencv_java
+                       native-lib
 
                        # Links the target library to the log library
                        # included in the NDK.
