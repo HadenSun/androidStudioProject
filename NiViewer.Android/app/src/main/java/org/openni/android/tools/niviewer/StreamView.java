@@ -40,6 +40,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.Image;
+import android.os.Environment;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -52,7 +53,25 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemSelectedListener;
+//文件的操作
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.FileNotFoundException;
 
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.widget.TextView;
+
+import static android.content.Context.MODE_PRIVATE;
+import java.io.*;
+import java.util.*;
 public class StreamView extends RelativeLayout {
 
 	static {
@@ -71,6 +90,8 @@ public class StreamView extends RelativeLayout {
 	private OpenNIView mFrameView;
 	private TextView mStatusLine;
 	private Button mRemoveButton;
+	private ImageView mImageView;
+	private int sensorTypeInt;
 
 	private static SensorType[] SENSORS = { SensorType.DEPTH, SensorType.COLOR, SensorType.IR };
 	private static CharSequence[] SENSOR_NAMES = { "Depth", "Color", "IR" };
@@ -109,6 +130,7 @@ public class StreamView extends RelativeLayout {
 			mFrameView = (OpenNIView) findViewById(R.id.frameView);
 			mStatusLine = (TextView) findViewById(R.id.status_line);
 			mRemoveButton = (Button) findViewById(R.id.button_remove);
+			mImageView = (ImageView)findViewById(R.id.imageView2);
 
 			//产生下拉框 可以选择
 			mSensorSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
@@ -216,6 +238,9 @@ public class StreamView extends RelativeLayout {
 	}
 	private void onSensorSelected(int pos) {
 		try {
+
+            sensorTypeInt = pos;
+
 			stop();
 
 			if (mStream != null) {
@@ -278,6 +303,50 @@ public class StreamView extends RelativeLayout {
 			default:            return "UNKNOWN";
 		}
 	}
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	/**
+	 * 把数据写入文件
+	 * @param data
+	 * @param fileName
+	 */
+
+
+	private void WriteFile() throws IOException {
+		File newFile = new File(Environment.getExternalStorageDirectory(),"Text.xml");//
+
+		String data ="你好,Android.2018";
+//
+		FileWriter write = new FileWriter(newFile,true);
+
+		BufferedWriter bufferedWriter = new BufferedWriter(write);
+
+		bufferedWriter.write(data);bufferedWriter.newLine();//换行
+
+
+
+		 /* 加了这行才能将数据写入目的地。 * */
+
+		bufferedWriter.flush();
+		write.close();
+		bufferedWriter.close();
+
+
+		/*newFile.createNewFile();
+		FileOutputStream ouStream = new FileOutputStream(newFile);
+		ouStream.write(data.getBytes());
+		ouStream.close();*/
+
+	}
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 	private void onVideoModeSelected(int pos) {
 		try {
@@ -295,55 +364,119 @@ public class StreamView extends RelativeLayout {
 
 
 
-		mMainLoopThread = new Thread() {
-			@Override
-			public void run() {
-				List<VideoStream> streams = new ArrayList<VideoStream>();
-				streams.add(mStream);
-				long lastTime = System.nanoTime();
-				long frameCount = 0;
-				int fps = 0;
-				int frame_index=0;
+			mMainLoopThread = new Thread() {
+				@Override
+				public void run() {
+					List<VideoStream> streams = new ArrayList<VideoStream>();
+					streams.add(mStream);
+					long lastTime = System.nanoTime();
+					long frameCount = 0;
+					int fps = 0;
+					int frame_index=0;
 
-				while (mShouldRun) {
-					VideoFrameRef frame = null;
+					while (mShouldRun) {
+						VideoFrameRef frame = null;
 
-					try {
-						OpenNI.waitForAnyStream(streams, 100);
-						frame = mStream.readFrame();
-						////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-						frame_index=frame.getFrameIndex();
-						if(mStream.getVideoMode().equals(mStreamVideoModes.get(0))) {
-                            ByteBuffer byteBuffer = frame.getData();
-                            byte[] by = new byte[640 * 480];
-                            byteBuffer.get(by, 0, 640 * 480);
-                            int rstData[] = bitmap2Gray(by, 640, 480);
-                            Bitmap resultImage = Bitmap.createBitmap(640, 480, Bitmap.Config.ARGB_8888);
-                            resultImage.setPixels(rstData, 0, 640, 0, 0, 640, 480);
+						try {
+							OpenNI.waitForAnyStream(streams, 100);
+							frame = mStream.readFrame();
+							////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+							frame_index=frame.getFrameIndex();
+							int index_image=2;//mStream.getVideoMode().equals(mStreamVideoModes.get(2))
+							if(sensorTypeInt == 0) {
+								ByteBuffer byteBuffer = frame.getData();
+								//
+								// WriteFile();
+//								File newFile = new File(Environment.getExternalStorageDirectory(),"Text1.txt");//
+//
+//								//String data ="你好,Android.2018";
+//                             // byte[] data= new byte[640 * 480*2];
+//							// byteBuffer.get(data);
+//
+//							 String dataString = new String(data, "ISO-8859-1");//byte 数组  转换成字符串
+//
+//								FileWriter write = new FileWriter(newFile,true);
+//								BufferedWriter bufferedWriter = new BufferedWriter(write);
+//
+//								bufferedWriter.write(dataString);
+//
+//								bufferedWriter.newLine();//换行
+//								bufferedWriter.flush();
+//								write.close();
+//								bufferedWriter.close();
 
-                            //mFrameView.setVisibility(INVISIBLE);
-                        }
-						////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-						// Request rendering of the current OpenNI frame
-						mFrameView.update(frame);
-						++frameCount;
-						if (frameCount == 30) {
-							long now = System.nanoTime();
-							long diff = now - lastTime;
-							fps = (int)(1e9 * 30 / diff);
-							frameCount = 0;
-							lastTime = now;
+
+								//保存文件/
+								/*
+								byte[] by1 = new byte[640 * 480*2];
+								byteBuffer.get(by1);
+
+								Log.i(TAG, "run: "+by1);
+
+								FileOutputStream fos = null;
+								//File file=new File("C:\\Users\\Administrator\\Desktop");
+
+								File  file = new File("newfile.txt");
+								try {
+									fos = new FileOutputStream(file);
+								} catch (FileNotFoundException e) {
+									e.printStackTrace();
+								}
+								// 用FileOutputStream 的write方法写入字节数组
+								try {
+									fos.write(by1);
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								Log.i(TAG, "run: ");
+								System.out.println("写入成功");
+								// 为了节省IO流的开销，需要关闭
+								try {
+									fos.close();
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+                               */
+								///////////////////////////////////////////////////////////////////////////////////////////////////
+
+								byte[] by = new byte[640 * 480*index_image];
+								byteBuffer.get(by, 0, 640 * 480*index_image);
+								int rstData[] = bitmap2Gray(by, 640, 480);
+								Bitmap resultImage = Bitmap.createBitmap(640, 480, Bitmap.Config.ARGB_8888);
+								resultImage.setPixels(rstData, 0, 640, 0, 0, 640, 480);
+
+								Bitmap bm = BitmapFactory.decodeResource(getResources(),R.drawable.test);
+								mImageView.setImageBitmap(bm);
+								//mImageView.setImageBitmap(resultImage);
+								//mFrameView.setVisibility(INVISIBLE);
+							}
+							else {
+								mFrameView.setVisibility(VISIBLE);
+							}
+							////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+							// Request rendering of the current OpenNI frame
+							mFrameView.update(frame);
+							++frameCount;
+							if (frameCount == 30) {
+								long now = System.nanoTime();
+								long diff = now - lastTime;
+								fps = (int)(1e9 * 30 / diff);
+								frameCount = 0;
+								lastTime = now;
+							}
+
+							updateLabel(String.format("Frame Index: %,d | Timestamp: %,d | FPS: %d", frame.getFrameIndex(), frame.getTimestamp(), fps));
+
+						} catch (TimeoutException e) {
+						} catch (Exception e) {
+							Log.e(TAG, "Failed reading frame: " + e);
 						}
-
-						updateLabel(String.format("Frame Index: %,d | Timestamp: %,d | FPS: %d", frame.getFrameIndex(), frame.getTimestamp(), fps));
-
-					} catch (TimeoutException e) {
-					} catch (Exception e) {
-						Log.e(TAG, "Failed reading frame: " + e);
 					}
-				}
+				};
 			};
-		};
+
+
 
 		mMainLoopThread.setName("SimpleViewer MainLoop Thread");
 		mMainLoopThread.start();

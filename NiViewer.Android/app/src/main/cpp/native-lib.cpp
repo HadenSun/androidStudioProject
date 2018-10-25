@@ -23,7 +23,7 @@ JNIEXPORT jintArray JNICALL
 Java_org_openni_android_tools_niviewer_StreamView_bitmap2Gray(JNIEnv *env, jobject instance,
                                                               jbyteArray pixels_, jint w, jint h) {
     //数据转换
-    jbyte *pixels = env->GetByteArrayElements(pixels_, NULL);
+    jbyte *pixels = env->GetByteArrayElements(pixels_, NULL);//jbyteArray 转 c++中的BYTE[]
 
     // TODO
     //图像处理

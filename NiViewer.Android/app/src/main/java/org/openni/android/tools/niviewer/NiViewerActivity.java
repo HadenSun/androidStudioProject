@@ -20,6 +20,8 @@
  *****************************************************************************/
 package org.openni.android.tools.niviewer;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,6 +63,8 @@ public class NiViewerActivity
     private String mRecording;
     private LinearLayout mStreamsContainer;
     private int mActiveDeviceID = -1;
+
+
 
     static {
         System.loadLibrary("native-lib");
@@ -230,9 +234,11 @@ public class NiViewerActivity
         }
 
         mStreamsContainer.requestLayout();
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         addStream(0);
         addStream(1);
         addStream(2);
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     }
 
 
