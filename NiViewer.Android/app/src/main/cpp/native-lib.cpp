@@ -27,7 +27,7 @@ Java_org_openni_android_tools_niviewer_StreamView_bitmap2Gray(JNIEnv *env, jobje
 
     // TODO
     //图像处理
-    Mat imgData(h,w,CV_8UC1,(unsigned char*)pixels);
+    Mat imgData(h,w,CV_16UC1,(unsigned char*)pixels);
     //cvtColor(imgData,imgData,CV_BGRA2GRAY);              //转灰度图
     cvtColor(imgData,imgData,CV_GRAY2BGRA);              //需要显示，再转回彩色图
     //applyColorMap(imgData,imgData,COLORMAP_HSV);

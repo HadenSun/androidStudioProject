@@ -41,6 +41,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.Image;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -131,6 +133,8 @@ public class StreamView extends RelativeLayout {
 			mStatusLine = (TextView) findViewById(R.id.status_line);
 			mRemoveButton = (Button) findViewById(R.id.button_remove);
 			mImageView = (ImageView)findViewById(R.id.imageView2);
+
+
 
 			//产生下拉框 可以选择
 			mSensorSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
@@ -308,8 +312,6 @@ public class StreamView extends RelativeLayout {
 
 	/**
 	 * 把数据写入文件
-	 * @param data
-	 * @param fileName
 	 */
 
 
@@ -317,7 +319,7 @@ public class StreamView extends RelativeLayout {
 		File newFile = new File(Environment.getExternalStorageDirectory(),"Text.xml");//
 
 		String data ="你好,Android.2018";
-//
+
 		FileWriter write = new FileWriter(newFile,true);
 
 		BufferedWriter bufferedWriter = new BufferedWriter(write);
@@ -362,9 +364,15 @@ public class StreamView extends RelativeLayout {
 
 		mShouldRun = true;
 
+		if(sensorTypeInt == 0)
+		{
+			Bitmap bm = BitmapFactory.decodeResource(getResources(),R.drawable.test);
+			//mImageView.setImageBitmap(bm);
+		}
 
 
-			mMainLoopThread = new Thread() {
+
+			mMainLoopThread = new Thread(new Runnable() {
 				@Override
 				public void run() {
 					List<VideoStream> streams = new ArrayList<VideoStream>();
@@ -380,6 +388,7 @@ public class StreamView extends RelativeLayout {
 						try {
 							OpenNI.waitForAnyStream(streams, 100);
 							frame = mStream.readFrame();
+
 							////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 							frame_index=frame.getFrameIndex();
 							int index_image=2;//mStream.getVideoMode().equals(mStreamVideoModes.get(2))
@@ -406,50 +415,49 @@ public class StreamView extends RelativeLayout {
 //								bufferedWriter.close();
 
 
-								//保存文件/
-								/*
-								byte[] by1 = new byte[640 * 480*2];
-								byteBuffer.get(by1);
+//								//保存文件/
+//
+//								byte[] by1 = new byte[640 * 480*2];
+//								byteBuffer.get(by1);
+//
+//								Log.i(TAG, "run: "+by1);
+//
+//								FileOutputStream fos = null;
+//								//File file=new File("C:\\Users\\Administrator\\Desktop");
+//
+//								File  file = new File("newfile.txt");
+//								try {
+//									fos = new FileOutputStream(file);
+//								} catch (FileNotFoundException e) {
+//									e.printStackTrace();
+//								}
+//								// 用FileOutputStream 的write方法写入字节数组
+//								try {
+//									fos.write(by1);
+//								} catch (IOException e) {
+//									e.printStackTrace();
+//								}
+//								Log.i(TAG, "run: ");
+//								System.out.println("写入成功");
+//								// 为了节省IO流的开销，需要关闭
+//								try {
+//									fos.close();
+//								} catch (IOException e) {
+//									// TODO Auto-generated catch block
+//									e.printStackTrace();
+//								}
 
-								Log.i(TAG, "run: "+by1);
-
-								FileOutputStream fos = null;
-								//File file=new File("C:\\Users\\Administrator\\Desktop");
-
-								File  file = new File("newfile.txt");
-								try {
-									fos = new FileOutputStream(file);
-								} catch (FileNotFoundException e) {
-									e.printStackTrace();
-								}
-								// 用FileOutputStream 的write方法写入字节数组
-								try {
-									fos.write(by1);
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-								Log.i(TAG, "run: ");
-								System.out.println("写入成功");
-								// 为了节省IO流的开销，需要关闭
-								try {
-									fos.close();
-								} catch (IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-                               */
 								///////////////////////////////////////////////////////////////////////////////////////////////////
-
 								byte[] by = new byte[640 * 480*index_image];
 								byteBuffer.get(by, 0, 640 * 480*index_image);
 								int rstData[] = bitmap2Gray(by, 640, 480);
 								Bitmap resultImage = Bitmap.createBitmap(640, 480, Bitmap.Config.ARGB_8888);
 								resultImage.setPixels(rstData, 0, 640, 0, 0, 640, 480);
 
-								Bitmap bm = BitmapFactory.decodeResource(getResources(),R.drawable.test);
-								mImageView.setImageBitmap(bm);
-								//mImageView.setImageBitmap(resultImage);
-								//mFrameView.setVisibility(INVISIBLE);
+								//Bitmap bm = BitmapFactory.decodeResource(getResources(),R.drawable.test);
+								//mImageView.setImageBitmap(bm);
+								mImageView.setImageBitmap(resultImage);
+								//mFrameView.setVisibility(VISIBLE);
 							}
 							else {
 								mFrameView.setVisibility(VISIBLE);
@@ -469,12 +477,13 @@ public class StreamView extends RelativeLayout {
 							updateLabel(String.format("Frame Index: %,d | Timestamp: %,d | FPS: %d", frame.getFrameIndex(), frame.getTimestamp(), fps));
 
 						} catch (TimeoutException e) {
+							Log.e(TAG,"Timeout: " + e);
 						} catch (Exception e) {
 							Log.e(TAG, "Failed reading frame: " + e);
 						}
 					}
-				};
-			};
+				}
+			});
 
 
 
