@@ -28,14 +28,15 @@ Java_org_openni_android_tools_niviewer_StreamView_bitmap2Gray(JNIEnv *env, jobje
     // TODO
     //图像处理
     Mat imgData(h,w,CV_16UC1,(unsigned char*)pixels);
-    //cvtColor(imgData,imgData,CV_BGRA2GRAY);              //转灰度图
-    cvtColor(imgData,imgData,CV_GRAY2BGRA);              //需要显示，再转回彩色图
-    //applyColorMap(imgData,imgData,COLORMAP_HSV);
+    Mat image;
+    imgData.convertTo(image,CV_8U,1.0/6,-170);       //图像压缩
+    applyColorMap(image,image,COLORMAP_HSV);        //伪彩色图像
+    cvtColor(image,image,CV_RGB2BGRA);              //转RGBA四通道
 
     //返回转换
     int size = w*h;
     jintArray rst = env->NewIntArray(size);
-    env->SetIntArrayRegion(rst,0,size,(jint*)imgData.data);
+    env->SetIntArrayRegion(rst,0,size,(jint*)image.data);
     env->ReleaseByteArrayElements(pixels_, pixels, 0);
 
     return rst;
