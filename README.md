@@ -1,5 +1,5 @@
 # Face Recognition Based on Android
-release 0.9  
+release 0.91  
 
 
 ## Description
@@ -27,3 +27,6 @@ Android Studio 3.14
 ### V0.9
 * 经过验证的 C++ 程序合并入工程
 * 传入深度图象，通过 C++ 找到人脸并显示
+
+### V0.91
+* 修复切回应用后重复生成图像的BUG

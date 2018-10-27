@@ -136,9 +136,6 @@ public class NiViewerActivity
             }
         }
 
-        Log.d(TAG,"=============================== Start ===============================");
-        Toast.makeText(this,"Test",Toast.LENGTH_LONG).show();
-        Toast.makeText(this,stringFromJNI(),Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -229,15 +226,21 @@ public class NiViewerActivity
             }
         }
 
+        int count = 0;          //统计已经有的StreamView数量
         for (StreamView streamView : getStreamViews()) {
-            streamView.setDevice(mDevice);
+            streamView.setDevice(mDevice,count);
+            count++;
         }
 
         mStreamsContainer.requestLayout();
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        addStream(0);
-        addStream(1);
-        addStream(2);
+        if(count == 0)
+        {
+            addStream(0);
+            addStream(1);
+            addStream(2);
+        }
+
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     }
 
