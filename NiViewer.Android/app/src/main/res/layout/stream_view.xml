@@ -70,10 +70,14 @@
     <ImageView
         android:id="@+id/imageView2"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/status_line"
+        android:layout_below="@id/control_panel"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:contentDescription="image"
+        android:layout_marginTop="-2dp"
+        android:layout_marginBottom="2dp"
         android:scaleType="fitCenter"
         app:srcCompat="@drawable/test" />
 

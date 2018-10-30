@@ -1,5 +1,5 @@
 # Face Recognition Based on Android
-release 0.91  
+release 1.0  
 
 
 ## Description
@@ -9,6 +9,8 @@ release 0.91
 
 ## Software
 Android Studio 3.14  
+OpenCV 2.4.3
+OpenNI 2
 
 ## Compiling
 * Windows  
@@ -30,3 +32,7 @@ Android Studio 3.14
 
 ### V0.91
 * 修复切回应用后重复生成图像的BUG
+
+### V1.0
+* 深度、彩色和红外图像结果的显示
+* 修复异步线程更新UI闪退的BUG

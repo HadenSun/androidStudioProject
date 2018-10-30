@@ -80,6 +80,9 @@ private:
 };
 
 
+Capture capture = Capture();
+
+
 /* ============== JNI 接口程序 =================*/
 
 extern "C" JNIEXPORT jstring
@@ -94,9 +97,10 @@ Java_org_openni_android_tools_niviewer_NiViewerActivity_stringFromJNI(
 
 }
 
+//深度图像处理，找人脸
 extern "C"
 JNIEXPORT jintArray JNICALL
-Java_org_openni_android_tools_niviewer_StreamView_bitmap2Gray(JNIEnv *env, jobject instance,
+Java_org_openni_android_tools_niviewer_StreamView_depthImageprocess(JNIEnv *env, jobject instance,
                                                               jbyteArray pixels_, jint w, jint h) {
     //数据转换
     jbyte *pixels = env->GetByteArrayElements(pixels_, NULL);//jbyteArray 转 c++中的BYTE[]
@@ -104,12 +108,7 @@ Java_org_openni_android_tools_niviewer_StreamView_bitmap2Gray(JNIEnv *env, jobje
     // TODO
     //图像处理
     Mat imgData(h,w,CV_16UC1,(unsigned char*)pixels);
-//    Mat image;
-//    imgData.convertTo(image,CV_8U,1.0/6,-170);       //图像压缩
-//    applyColorMap(image,image,COLORMAP_HSV);        //伪彩色图像
-//    cvtColor(image,image,CV_RGB2BGRA);              //转RGBA四通道
 
-    Capture capture = Capture();
     Mat image;
     if(capture.findobj(imgData))
     {
@@ -133,9 +132,76 @@ Java_org_openni_android_tools_niviewer_StreamView_bitmap2Gray(JNIEnv *env, jobje
     return rst;
 }
 
+//彩色图像处理，框出人脸范围
+extern "C"
+JNIEXPORT jintArray JNICALL
+Java_org_openni_android_tools_niviewer_StreamView_colorImageprocess(JNIEnv *env, jobject instance,
+                                                                    jbyteArray pixels_, jint w,
+                                                                    jint h) {
+    jbyte *pixels = env->GetByteArrayElements(pixels_, NULL);
+
+    // TODO
+    Mat imgData(h,w,CV_8UC3,(unsigned char*)pixels);
+    Mat image;
+
+    if(capture.isface)
+    {
+        Rect rect = capture.checkface();
+        rect.x -= 45;
+        image = imgData;
+        rectangle(image,rect,Scalar(255,255,255),5);
+        cvtColor(image,image,CV_RGB2BGRA);
+    }
+    else
+    {
+        image = imgData;
+        cvtColor(image,image,CV_RGB2BGRA);
+    }
+
+    //返回转换
+    int size = w*h;
+    jintArray rst = env->NewIntArray(size);
+    env->SetIntArrayRegion(rst,0,size,(jint*)image.data);
+    env->ReleaseByteArrayElements(pixels_, pixels, 0);
+
+    return rst;
+}
+
+//红外图像处理，框出范围
+extern "C"
+JNIEXPORT jintArray JNICALL
+Java_org_openni_android_tools_niviewer_StreamView_irImageprocess(JNIEnv *env, jobject instance,
+                                                                 jbyteArray pixels_, jint w,
+                                                                 jint h) {
+    jbyte *pixels = env->GetByteArrayElements(pixels_, NULL);
+
+    // TODO
+    Mat imgData(h,w,CV_8UC1,(unsigned char*)pixels);
+
+    Mat image;
 
 
+    if(capture.isface)
+    {
+        Rect rect = capture.checkface();
+        image = imgData;
+        rectangle(image,rect,Scalar(255),5);
+        cvtColor(image,image,CV_GRAY2BGRA);
+    }
+    else
+    {
+        image = imgData;
+        cvtColor(image,image,CV_GRAY2BGRA);
+    }
 
+    //返回转换
+    int size = w*h;
+    jintArray rst = env->NewIntArray(size);
+    env->SetIntArrayRegion(rst,0,size,(jint*)image.data);
+    env->ReleaseByteArrayElements(pixels_, pixels, 0);
+
+    return rst;
+}
 
 
 /*====================== 类内方法实现 ======================*/
@@ -313,27 +379,15 @@ bool Capture::findobj(Mat imgdepth)  // use orignal depth data
                         //rectangle(depth_zip, re, Scalar(255));
                         //imshow("调整框大小后的depth_grow", depth_zip);
                         //cout << "调整框大小完成" << endl;
+
+                        isface = true;
                         return true;
                     }
                 }
-                else
-                {
-                    if (result == -1)
-                        cout << "\t请保持正脸，靠近一点!!靠近!!靠近!!!" << endl;
-                    if (result == -2)
-                        cout << "\t请请保持正脸，靠远一点!靠远!靠远!!!" << endl;
-                    return false;
-                }
-                return false;                        //判断正侧脸的返回值
             }
         }
-            //寻找头顶行失败时，提示将头靠近
-        else
-        {
-            cout << "\t请保持正脸，把头靠近一点!!" << endl;
-        }
-        return false;
     }
+    isface = false;
     return false;
 }
 

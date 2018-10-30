@@ -98,6 +98,12 @@ public class StreamView extends RelativeLayout {
 	private static SensorType[] SENSORS = { SensorType.DEPTH, SensorType.COLOR, SensorType.IR };
 	private static CharSequence[] SENSOR_NAMES = { "Depth", "Color", "IR" };
 
+	Handler handle = new Handler(){
+		public void handleMessage(Message msg){
+			mImageView.setImageBitmap((Bitmap)msg.obj);
+		}
+	};
+
 	public StreamView(Context context) {
 		super(context);
 		initialize(context);
@@ -364,126 +370,90 @@ public class StreamView extends RelativeLayout {
 
 		mShouldRun = true;
 
-		if(sensorTypeInt == 0)
-		{
-			Bitmap bm = BitmapFactory.decodeResource(getResources(),R.drawable.test);
-			//mImageView.setImageBitmap(bm);
-		}
 
+		mMainLoopThread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				List<VideoStream> streams = new ArrayList<VideoStream>();
+				streams.add(mStream);
+				long lastTime = System.nanoTime();
+				long frameCount = 0;
+				int fps = 0;
+				int frame_index=0;
 
+				while (mShouldRun) {
+					VideoFrameRef frame = null;
 
-			mMainLoopThread = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					List<VideoStream> streams = new ArrayList<VideoStream>();
-					streams.add(mStream);
-					long lastTime = System.nanoTime();
-					long frameCount = 0;
-					int fps = 0;
-					int frame_index=0;
+					try {
+						OpenNI.waitForAnyStream(streams, 100);
+						frame = mStream.readFrame();
 
-					while (mShouldRun) {
-						VideoFrameRef frame = null;
+						////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+						frame_index=frame.getFrameIndex();
 
-						try {
-							OpenNI.waitForAnyStream(streams, 100);
-							frame = mStream.readFrame();
+						if(sensorTypeInt == 0) {
+							ByteBuffer byteBuffer = frame.getData();
+							byte[] by = new byte[640 * 480*2];
+							byteBuffer.get(by, 0, 640 * 480*2);
+							int rstData[] = depthImageprocess(by, 640, 480);
+							Bitmap resultImage = Bitmap.createBitmap(640, 480, Bitmap.Config.ARGB_8888);
+							resultImage.setPixels(rstData, 0, 640, 0, 0, 640, 480);
 
-							////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-							frame_index=frame.getFrameIndex();
-							int index_image=2;//mStream.getVideoMode().equals(mStreamVideoModes.get(2))
-							if(sensorTypeInt == 0) {
-								ByteBuffer byteBuffer = frame.getData();
-								//
-								// WriteFile();
-//								File newFile = new File(Environment.getExternalStorageDirectory(),"Text1.txt");//
-//
-//								//String data ="你好,Android.2018";
-//                             // byte[] data= new byte[640 * 480*2];
-//							// byteBuffer.get(data);
-//
-//							 String dataString = new String(data, "ISO-8859-1");//byte 数组  转换成字符串
-//
-//								FileWriter write = new FileWriter(newFile,true);
-//								BufferedWriter bufferedWriter = new BufferedWriter(write);
-//
-//								bufferedWriter.write(dataString);
-//
-//								bufferedWriter.newLine();//换行
-//								bufferedWriter.flush();
-//								write.close();
-//								bufferedWriter.close();
-
-
-//								//保存文件/
-//
-//								byte[] by1 = new byte[640 * 480*2];
-//								byteBuffer.get(by1);
-//
-//								Log.i(TAG, "run: "+by1);
-//
-//								FileOutputStream fos = null;
-//								//File file=new File("C:\\Users\\Administrator\\Desktop");
-//
-//								File  file = new File("newfile.txt");
-//								try {
-//									fos = new FileOutputStream(file);
-//								} catch (FileNotFoundException e) {
-//									e.printStackTrace();
-//								}
-//								// 用FileOutputStream 的write方法写入字节数组
-//								try {
-//									fos.write(by1);
-//								} catch (IOException e) {
-//									e.printStackTrace();
-//								}
-//								Log.i(TAG, "run: ");
-//								System.out.println("写入成功");
-//								// 为了节省IO流的开销，需要关闭
-//								try {
-//									fos.close();
-//								} catch (IOException e) {
-//									// TODO Auto-generated catch block
-//									e.printStackTrace();
-//								}
-
-								///////////////////////////////////////////////////////////////////////////////////////////////////
-								byte[] by = new byte[640 * 480*index_image];
-								byteBuffer.get(by, 0, 640 * 480*index_image);
-								int rstData[] = bitmap2Gray(by, 640, 480);
-								Bitmap resultImage = Bitmap.createBitmap(640, 480, Bitmap.Config.ARGB_8888);
-								resultImage.setPixels(rstData, 0, 640, 0, 0, 640, 480);
-
-								//Bitmap bm = BitmapFactory.decodeResource(getResources(),R.drawable.test);
-								//mImageView.setImageBitmap(bm);
-								mImageView.setImageBitmap(resultImage);
-								//mFrameView.setVisibility(VISIBLE);
-							}
-							else {
-								mFrameView.setVisibility(VISIBLE);
-							}
-							////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-							// Request rendering of the current OpenNI frame
-							mFrameView.update(frame);
-							++frameCount;
-							if (frameCount == 30) {
-								long now = System.nanoTime();
-								long diff = now - lastTime;
-								fps = (int)(1e9 * 30 / diff);
-								frameCount = 0;
-								lastTime = now;
-							}
-
-							updateLabel(String.format("Frame Index: %,d | Timestamp: %,d | FPS: %d", frame.getFrameIndex(), frame.getTimestamp(), fps));
-
-						} catch (TimeoutException e) {
-							Log.e(TAG,"Timeout: " + e);
-						} catch (Exception e) {
-							Log.e(TAG, "Failed reading frame: " + e);
+							Message msg = Message.obtain();
+							msg.obj = resultImage;
+							handle.sendMessage(msg);
+							//mImageView.setImageBitmap(resultImage);
 						}
+						else if(sensorTypeInt == 1)
+						{
+							ByteBuffer byteBuffer = frame.getData();
+							byte[] by = new byte[640*480*3];
+							byteBuffer.get(by,0,640*480*3);
+							int rstData[] = colorImageprocess(by,640,480);
+							Bitmap resultImage = Bitmap.createBitmap(640,480,Bitmap.Config.ARGB_8888);
+							resultImage.setPixels(rstData,0,640,0,0,640,480);
+
+							Message msg = Message.obtain();
+							msg.obj = resultImage;
+							handle.sendMessage(msg);
+							//mImageView.setImageBitmap(resultImage);
+
+						}
+						else {
+							ByteBuffer byteBuffer = frame.getData();
+							byte[] by = new byte[640*480];
+							byteBuffer.get(by,0,640*480);
+							int rstData[] = irImageprocess(by,640,480);
+							Bitmap resultImage = Bitmap.createBitmap(640,480,Bitmap.Config.ARGB_8888);
+							resultImage.setPixels(rstData,0,640,0,0,640,480);
+
+							Message msg = Message.obtain();
+							msg.obj = resultImage;
+							handle.sendMessage(msg);
+							//mImageView.setImageBitmap(resultImage);
+						}
+						////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+						// Request rendering of the current OpenNI frame
+						//mFrameView.update(frame);
+						++frameCount;
+						if (frameCount == 30) {
+							long now = System.nanoTime();
+							long diff = now - lastTime;
+							fps = (int)(1e9 * 30 / diff);
+							frameCount = 0;
+							lastTime = now;
+						}
+
+						updateLabel(String.format("Frame Index: %,d | Timestamp: %,d | FPS: %d", frame.getFrameIndex(), frame.getTimestamp(), fps));
+
+					} catch (TimeoutException e) {
+						Log.e(TAG,"Timeout: " + e);
+					} catch (Exception e) {
+						Log.e(TAG, "Failed reading frame: " + e);
 					}
 				}
-			});
+			}
+		});
 
 
 
@@ -519,6 +489,9 @@ public class StreamView extends RelativeLayout {
 		});
 	}
 
-	public native int[] bitmap2Gray(byte[] pixels, int w,int h);
+	public native int[] depthImageprocess(byte[] pixels, int w,int h);
 
+	public native int[] colorImageprocess(byte[] pixels, int w, int h);
+
+	public native int[] irImageprocess(byte[] pixels, int w, int h);
 }
